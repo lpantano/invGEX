@@ -13,7 +13,8 @@ deseq.random<-function(obj_exp,path,pi0){
 	go.w.deseq.sex<-obj_exp[[4]]
 	pvalues<-vector()
 	pi0.l<-vector("list")
-	for (iter in 1:50){
+	total<-50
+	for (iter in 1:total){
 		#print(iter)
 		if ((iter/10)%%1==0){print(paste("num pi0.rand below real pi0",min(pvalues),"at",iter))}
 		if ( iter>1){
@@ -24,8 +25,10 @@ deseq.random<-function(obj_exp,path,pi0){
 				break
 			}
 		}
-		dse.log<-0
-		while(class(dse.log)!="DESeqDataSet"){
+		dse<-0
+		tries<-0
+		while(class(dse)!="DESeqDataSet" & tries<=5){
+		 tries<-tries +1
 		 design.r<-design2
 		 design.r$condition<-sample(design2$condition,nrow(design2))
 		 write.table(design.r,paste(sep="",path,"/random/",iter,"gen.random"),quote=F,row.names=T)
@@ -34,27 +37,30 @@ deseq.random<-function(obj_exp,path,pi0){
 		 }else{
 			dse <- DESeqDataSetFromMatrix(countData = table.fil, colData = design.r,design = ~ condition)
 		 }
-		 dse.log<-try(dse <- DESeq(dse,fitType="parametric",quiet=TRUE),silent=TRUE)
+		 dse<-try(DESeq(dse,fitType="parametric",quiet=TRUE),silent=TRUE)
 		}
+		if (class(dse)=="DESeqDataSet"){
+			comp<-resultsNames(dse)
+			for (nameres in comp[grep("condition",comp)]){
+				#print(nameres)
+				res <- results(dse,nameres,independentFiltering=FALSE,cooksCutoff=FALSE)
+				qobj <- qvalue(res$pvalue[!is.na(res$pvalue)],fdr.level=0.1)
+				#t<-try(qsummary(qobj),silent=TRUE)
+				pi0.l[[nameres]]<-c(pi0.l[[nameres]],qobj$pi0)
+				pvalues[nameres]<-sum(pi0[nameres]>pi0.l[[nameres]])/(total+1)
+			}
 
-		comp<-resultsNames(dse)
-		for (nameres in comp[grep("condition",comp)]){
-			#print(nameres)
-			res <- results(dse,nameres,independentFiltering=FALSE,cooksCutoff=FALSE)
-			qobj <- qvalue(res$pvalue[!is.na(res$pvalue)],fdr.level=0.1)
-			#t<-try(qsummary(qobj),silent=TRUE)
-			pi0.l[[nameres]]<-c(pi0.l[[nameres]],qobj$pi0)
-			pvalues[nameres]<-sum(pi0[nameres]>pi0.l[[nameres]])/51
-		}
-
-		if (length(levels(design2$condition))>2){
-			res<-results(dse, contrast=c("condition","INV","HET"),
-				independentFiltering=FALSE,cooksCutoff=FALSE)
-			qobj <- qvalue(res$pvalue[!is.na(res$pvalue)],fdr.level=0.1)
-			#t<-try(qsummary(qobj),silent=TRUE)
-			nameres<-"condition_INV_vs_HET"
-			pi0.l[[nameres]]<-c(pi0.l[[nameres]],qobj$pi0)
-			pvalues[nameres]<-sum(pi0[nameres]>pi0.l[[nameres]])/51
+			if (length(levels(design2$condition))>2){
+				res<-results(dse, contrast=c("condition","INV","HET"),
+					independentFiltering=FALSE,cooksCutoff=FALSE)
+				qobj <- qvalue(res$pvalue[!is.na(res$pvalue)],fdr.level=0.1)
+				#t<-try(qsummary(qobj),silent=TRUE)
+				nameres<-"condition_INV_vs_HET"
+				pi0.l[[nameres]]<-c(pi0.l[[nameres]],qobj$pi0)
+				pvalues[nameres]<-sum(pi0[nameres]>pi0.l[[nameres]])/(total+1)
+			}
+		}else{
+			total<-total-1
 		}
 		#print(pvalues)
 

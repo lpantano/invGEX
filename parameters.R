@@ -1,10 +1,10 @@
-type<-"Others"
+type<-"Genes"
 pathYRI<-"/home/shareddata/Bioinformatics/iRNASeq/geovadis/YRI/"
 pathCEU<-paste(sep="","/home/shareddata/Bioinformatics/iRNASeq/geovadis/CEU/genes/counts.",type,".tab")
 pathTSI<-paste(sep="","/home/shareddata/Bioinformatics/iRNASeq/geovadis/TSI/genes/counts.",type,".tab")
-rootpath<-"/home/shareddata/Bioinformatics/iRNASeq/test/"
+#rootpath<-"/home/shareddata/Bioinformatics/iRNASeq/test/"
 dMLPA<-"/home/shareddata/Bioinformatics/iRNASeq/dMLPA_genotypes_Oct22.csv"
 iMLPA<-"/home/shareddata/Bioinformatics/iRNASeq/iMLPA_genotypes_Oct22.csv"
-parameter.pipeline<-"unfinished"
-path_res<-"/home/shareddata/Bioinformatics/iRNASeq/results_test/"
+parameter.pipeline<-"new"
+path_res<-"/home/shareddata/Bioinformatics/iRNASeq/results_paralell/"
 file.pos<-"/home/shareddata/Bioinformatics/iRNASeq/positions.all"
