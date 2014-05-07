@@ -1,8 +1,3 @@
- library (snowfall)
-
-# initialize cluster
- sfInit (parallel=TRUE , cpus=3)
-
 
 # parallel computing
 dode<-function(x){
@@ -10,7 +5,10 @@ dode<-function(x){
 	do.analysis(x)
 }
 load(all.inversions.obj)
-system.time(sfLapply(all.inversions, dode))
 
-# stop cluster
-sfStop()
+library(parallel)
+cl<-makeCluster(4) 
+clusterEvalQ(cl)
+t<-system.time(clusterApplyLB(cl,all.inversions, dode))
+write.table(t,"/home/lpantano/time.process")
+stopCluster(cl)

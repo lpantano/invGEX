@@ -2,9 +2,9 @@
 do.analysis<-function(invname){
 
 	source("parameters.R")
-	inversions<-read.table(iMLPA,sep="\t",header=T)
-	inversions2<-read.table(dMLPA,sep="\t",header=T)
-	inversions<-merge(inversions,inversions2[,c(1,4:ncol(inversions2))],by=1,all=T)
+	inversions<-read.table(MLPA,sep="\t",header=T)
+	#inversions2<-read.table(dMLPA,sep="\t",header=T)
+	#inversions<-merge(inversions,inversions2[,c(1,4:ncol(inversions2))],by=1,all=T)
 
 	pos.inv<-read.table(file.pos,header=T)
 	pos.inv.aut<-pos.inv
@@ -48,7 +48,7 @@ do.analysis<-function(invname){
 			pipeline.deseq(info.a,invname)
 		}
 		source("summary.all.R")
-		#do.summary(invname)
+		do.summary(invname)
 		write.table("done",paste(sep="",path_res,invname,"/",type,"/done"))
 		
 	}

@@ -2,6 +2,7 @@ source("parameters.R")
 library(DESeq2)
 library(ggplot2)
 library(qvalue)
+library(HTSFilter)
 
 send.random<-function(obj_exp,path,pi0){
 	source("deseq.random.R")
@@ -39,53 +40,65 @@ deseq2<-function(obj_exp,outfolder,invname,pop){
 	table.fil<-obj_exp[[2]]
 	go.w.deseq<-obj_exp[[3]]
 	go.w.deseq.sex<-obj_exp[[4]]
+	print(levels(design2$condition))
+	if (length(levels(design2$condition))>1){
+		pairs<-combn(levels(design2$condition),2)
+		if (go.w.deseq==1){
 
-	if (go.w.deseq==1){
+			#path<-paste(sep="",rootpath,pop,"/",outfolder,"/")
+			path<-paste(sep="",path_res,invname,"/",type,"/",outfolder)
+			dir.create(paste(sep="",path),showWarnings = FALSE)
+			
+			#dir.create(paste(sep="",path),showWarnings = FALSE)
+			print(path)
+			print(nrow(design))
+			pi0<-vector()
+			pvalues<-vector()
+			for (nc in 1:ncol(pairs)){
+				print(paste0(pairs[,nc]))
+				design.f<-design2[design2$condition==pairs[1,nc] |design2$condition==pairs[2,nc], ]
+				design.f$condition<-factor(design.f$condition,levels=(sort(pairs[,nc],decreasing=T)))
+				idx<-row.names(design.f)
+				table.f<-table.fil[,idx]
+				if (go.w.deseq.sex==0){
+					dse <- DESeqDataSetFromMatrix(countData = table.f, colData = design.f,design = ~ sex + condition)
+				}else{
+					dse <- DESeqDataSetFromMatrix(countData = table.f, colData = design.f,design = ~ condition)
+				}
+				
 
-		#path<-paste(sep="",rootpath,pop,"/",outfolder,"/")
-		path<-paste(sep="",path_res,invname,"/",type,"/",outfolder)
-		dir.create(paste(sep="",path),showWarnings = FALSE)
-		
-		#dir.create(paste(sep="",path),showWarnings = FALSE)
-		print(path)
-		print(nrow(design))
-		if (go.w.deseq.sex==0){
-			dse <- DESeqDataSetFromMatrix(countData = table.fil, colData = design2,design = ~ sex + condition)
-		}else{
-			dse <- DESeqDataSetFromMatrix(countData = table.fil, colData = design2,design = ~ condition)
+				#write.table(as.data.frame(table(design2)),paste(sep="",path,"/design.tab"),quote=F,sep="\t")
+			
+				dse <- DESeq(dse,fitType="parametric",quiet=TRUE)
+				save(dse,file=paste0(path,"/",pairs[1,nc],pairs[2,nc],"dse"))
+				rld <- rlogTransformation(dse)
+				save(rld,file=paste0(path,"/",pairs[1,nc],pairs[2,nc],"rld"))
+				tryCatch({
+				 filter <- HTSFilter(dse, s.len=100, plot=FALSE)$filteredData
+				 res <- results(filter,independentFiltering=FALSE,cooksCutoff=FALSE)
+				 pi0<-save.results(res,path,paste0(pairs[1,nc],pairs[2,nc]),pi0)
+				}, error = function(e){
+					print("error at htsfilter, skipping")
+					res <- results(dse,independentFiltering=FALSE,cooksCutoff=FALSE)
+					pi0<-save.results(res,path,paste0(pairs[1,nc],pairs[2,nc]),pi0)
+				})	
+				
+
+				
+				
+			}
+
+			#pvalues[nameres]<-1
+			#print("Doing 50 permutations")
+			#if (pi0<1){
+			#	pvalues<-send.random(obj_exp,path,pi0)
+			#}
+			#write.table(pvalues,paste(sep="",path,"/pvalues.tab"),quote=F,sep="\t")
+
+
 		}
-		dse <- DESeq(dse,fitType="parametric",quiet=TRUE)
-		save(dse,file=paste(sep="",path,"/dse"))
-		rld <- rlogTransformation(dse, blind=TRUE)
-		save(rld,file=paste(sep="",path,"/rld"))
-
-		write.table(as.data.frame(table(design2)),paste(sep="",path,"/design.tab"),quote=F,sep="\t")
-
-		comp<-resultsNames(dse)
-		res <- results(dse)
-		pi0<-vector()
-		pvalues<-vector()
-		for (nameres in comp[grep("condition",comp)]){
-			res <- results(dse,nameres,independentFiltering=FALSE,cooksCutoff=FALSE)
-
-			pi0<-save.results(res,path,nameres,pi0)
-			pvalues[nameres]<-1
-		}
-
-		if (length(levels(design2$condition))>2){
-			res.inv.het<-results(dse, contrast=c("condition","INV","HET"),
-				independentFiltering=FALSE,cooksCutoff=FALSE)
-			pi0<-save.results(res.inv.het,path,"condition_INV_vs_HET",pi0)
-			pvalues["condition_INV_vs_HET"]<-1
-		}
-
-		print("Doing 50 permutations")
-		if (pi0<1){
-			pvalues<-send.random(obj_exp,path,pi0)
-		}
-		write.table(pvalues,paste(sep="",path,"/pvalues.tab"),quote=F,sep="\t")
-
-
 	}
-
 }
+
+#debug(save.results)
+#debug(deseq2)

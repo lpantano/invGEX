@@ -3,8 +3,8 @@ pathYRI<-"/home/shareddata/Bioinformatics/iRNASeq/geovadis/YRI/"
 pathCEU<-paste(sep="","/home/shareddata/Bioinformatics/iRNASeq/geovadis/CEU/genes/counts.",type,".tab")
 pathTSI<-paste(sep="","/home/shareddata/Bioinformatics/iRNASeq/geovadis/TSI/genes/counts.",type,".tab")
 #rootpath<-"/home/shareddata/Bioinformatics/iRNASeq/test/"
-dMLPA<-"/home/shareddata/Bioinformatics/iRNASeq/dMLPA_genotypes_Oct22.csv"
-iMLPA<-"/home/shareddata/Bioinformatics/iRNASeq/iMLPA_genotypes_Oct22.csv"
-parameter.pipeline<-"new"
-path_res<-"/home/shareddata/Bioinformatics/iRNASeq/results_paralell/"
+MLPA<-"/home/shareddata/Bioinformatics/iRNASeq/genotype/v2_RESULTS_41INVERSIONS_7POPULATIONS_v2_04_02_2014.tab"
+#MLPA<-"/home/shareddata/Bioinformatics/iRNASeq/iMLPA_genotypes_Oct22.csv"
+parameter.pipeline<-"repeat"
+path_res<-"/home/shareddata/Bioinformatics/iRNASeq/results_paralell_April/"
 file.pos<-"/home/shareddata/Bioinformatics/iRNASeq/positions.all"

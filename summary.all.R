@@ -1,3 +1,6 @@
+library(DESeq2)
+library(HTSFilter)
+
 do.summary<-function(invname){
 	source("parameters.R")
 	#type<-"Genes"
@@ -9,26 +12,28 @@ do.summary<-function(invname){
 	table.res<-data.frame()
 	#all.inversions<-"HsInv58"
 	comp<-vector("list")
-	comp[[1]]<-c("INV","cSTD")
-	comp[[2]]<-c("INV","HET")
-	comp[[3]]<-c("HET","cSTD")
+	comp[[1]]<-c("cSTD","INV")
+	comp[[2]]<-c("HET","INV")
+	comp[[3]]<-c("cSTD","HET")
 	population<-c("CEUTSI","YRI")
 	labs<-c("CEUTSI.inv","CEUTSI.inv.het","CEUTSI.het","YRI.inv","YRI.inv.het","YRI.het")
 		print(invname)
 		list.g<-vector()
 		for (pop in population){
-			dse.dir<-paste(sep="",path_res,invname,"/",type,"/",pop,".DESeq2",type,".parametric/dse")
-			rld.dir<-paste(sep="",path_res,invname,"/",type,"/",pop,".DESeq2",type,".parametric/rld")
-			if (file.exists(dse.dir)){
-				load(dse.dir)
-				
+			for (i in 1:3) {
+				gen<-paste0(comp[[i]],collapse="")
+				dse.dir<-paste(sep="",path_res,invname,"/",type,"/",pop,".DESeq2",type,".parametric/",gen,"dse")
+				rld.dir<-paste(sep="",path_res,invname,"/",type,"/",pop,".DESeq2",type,".parametric/",gen,"rld")
+				if (file.exists(dse.dir)){
+					load(dse.dir)
+					dsef <- try(HTSFilter(dse, s.len=100, plot=FALSE)$filteredData,silent=T)
+				 	if (class(dsef)!="try-error"){
+				 		res<-try(results(dsef, independentFiltering=FALSE,cooksCutoff=FALSE),silent=TRUE)
 
-
-				for (i in 1:3) {
-					gen<-comp[[i]]
-					res<-try(results(dse, contrast=c("condition",gen[1],gen[2]),
-					independentFiltering=FALSE,cooksCutoff=FALSE),silent=TRUE)
-					if(class(res)=="DataFrame"){
+				 	}else{
+						res<-try(results(dse, independentFiltering=FALSE,cooksCutoff=FALSE),silent=TRUE)
+					}
+					if(class(res)=="DESeqResults"){
 						#print(gen)
 						res<-res[!is.na(res$padj),]
 						res.all<-mcols(dse,use.names=TRUE)
@@ -43,6 +48,7 @@ do.summary<-function(invname){
 						}
 					}
 				}
+			
 			}
 			
 		}
@@ -56,29 +62,37 @@ do.summary<-function(invname){
 		done<-vector(length=7)
 	if (length(list.g)>0){
 		for (pop in population){
+			#print(pop)
 			idx.pop<-which(population==pop)
 			base<-(idx.pop-1)*3
-			dse.dir<-paste(sep="",path_res,invname,"/",type,"/",pop,".DESeq2",type,".parametric/dse")
-			rld.dir<-paste(sep="",path_res,invname,"/",type,"/",pop,".DESeq2",type,".parametric/rld")
-			
-			if (file.exists(dse.dir)){
-				load(rld.dir)
-				load(dse.dir)
-				for (i in 1:3) {
-					idx<-i+base
-					gen<-comp[[i]]
-					
-					res<-try(results(dse, contrast=c("condition",gen[1],gen[2]),
-					independentFiltering=FALSE,cooksCutoff=FALSE),silent=T)
+			for (i in 1:3) {
+				idx<-i+base
+				gen<-paste0(comp[[i]],collapse="")
+				#print(gen)
+				#print(labs[idx])
+				dse.dir<-paste(sep="",path_res,invname,"/",type,"/",pop,".DESeq2",type,".parametric/",gen,"dse")
+				rld.dir<-paste(sep="",path_res,invname,"/",type,"/",pop,".DESeq2",type,".parametric/",gen,"rld")
+				if (file.exists(dse.dir)){
+					load(dse.dir)
+					load(rld.dir)
+					#print("1 if")
+					dsef <- try(HTSFilter(dse, s.len=100, plot=FALSE)$filteredData,silent=T)
+				 	if (class(dsef)!="try-error"){
+				 		res<-try(results(dsef, independentFiltering=FALSE,cooksCutoff=FALSE),silent=TRUE)
+
+				 	}else{
+						res<-try(results(dse, independentFiltering=FALSE,cooksCutoff=FALSE),silent=TRUE)
+					}
 					design<-as.data.frame(colData(dse)[,1:2])
-					min.indv<-min(nrow(design[design[,1]==gen[1],]),nrow(design[design[,1]==gen[2],]))
-					if(class(res)=="DataFrame" & min.indv>=4){
-						print(labs[idx])
+					min.indv<-min(nrow(design[design[,1]==comp[[i]][1],]),nrow(design[design[,1]==comp[[i]][1],]))
+
+					if(class(res)=="DESeqResults" & min.indv>=4){
+						#print("2 if")
 						done[idx]<-1
 						res<-res[!is.na(res$padj),]
 						res.all<-mcols(dse,use.names=TRUE)
 						res.all<-res.all[!is.na(res.all$dispersion),]
-						res.all<-res.all[res.all$dispersion<=1.5,]
+						res.all<-res.all[res.all$dispersion<=2,]
 						list.g.t<-intersect(list.g,row.names(res.all))
 						
 						exp<-as.data.frame(assay(rld[list.g.t,]))
@@ -86,15 +100,16 @@ do.summary<-function(invname){
 							#print(gf)
 							mean.e<-mean(as.numeric(exp[gf,]))
 							q75.e<-quantile(as.numeric(exp[gf,]),.75)
-							considered.exp<- mean.e>log2(5) & q75.e>log2(5)
+							considered.exp<- mean.e>log2(2) & q75.e>log2(2)
 							return(considered.exp)
 						})
 						names(list.e)<-list.g.t
 
 						list.g.t<-intersect(list.g.t,names(list.e[list.e==TRUE]))
 						selected<-as.data.frame(res[list.g.t,])
-
+				
 						if (length(list.g.t)>0){
+							#print("3 if")
 							fdr<-res[row.names(selected),6]
 							fdr<-data.frame(genes=list.g.t,FDR=fdr)
 							names(fdr)[2]<-paste(labs[idx],".FDR",sep="")
@@ -109,28 +124,11 @@ do.summary<-function(invname){
 							cf<-data.frame(genes=list.g.t,FDR=cf)
 							names(cf)[2]<-paste(labs[idx],".CF",sep="")
 							cf.total<-merge(cf.total,cf,by=1,all=T)
-
 							
-							
-							
-							list.ratio<-sapply(list.g.t,function(gf){
-								ind.c1<-row.names(design[design$condition==gen[1],])
-								ind.c2<-row.names(design[design$condition==gen[2],])
-								gen1.q70<-round(quantile(exp[gf,ind.c1],0.70,na.rm=TRUE),digits=1)
-								gen2.q30<-round(quantile(exp[gf,ind.c2],0.30,na.rm=TRUE),digits=1)
-								gen1.q30<-round(quantile(exp[gf,ind.c1],0.30,na.rm=TRUE),digits=1)
-								gen2.q70<-round(quantile(exp[gf,ind.c2],0.70,na.rm=TRUE),digits=1)
-								exp.c1<-as.numeric(exp[gf,ind.c1])
-								exp.c2<-as.numeric(exp[gf,ind.c2])
-								min.over.1<-max(sum(exp.c1>=gen2.q70),sum(exp.c1>=gen2.q30))
-								ratio.1<-min.over.1/length(exp.c1)
-								min.over.2<-max(sum(exp.c2>=gen1.q70),sum(exp.c2>=gen1.q30))
-								ratio.2<-min.over.2/length(exp.c2)
-								ratio<-min(ratio.1,ratio.2)*100
-								return(ratio)
-							})
 
-
+							rt.se<-res[row.names(selected),"lfcSE"]
+							list.ratio<-abs(cf[,2])/((abs(cf[,2])+rt.se)-(abs(cf[,2])-rt.se))
+							list.ratio<-abs(cf[,2])-rt.se
 							rt<-res[row.names(selected),3]
 							rt<-data.frame(genes=list.g.t,FDR=list.ratio)
 							names(rt)[2]<-paste(labs[idx],".ratio",sep="")
@@ -170,28 +168,30 @@ do.summary<-function(invname){
 						names(rt)[2]<-paste(labs[idx],".ratio",sep="")
 						rt.total<-merge(rt.total,rt,by=1,all=T)
 					}
+				}else{
+							done[idx:(idx+2)]<-0
+							fdr<-data.frame(gene="g1",FDR=NA)
+							names(fdr)[2]<-paste(labs[idx],".FDR",sep="")
+							fdr.total<-merge(fdr.total,fdr,by=1,all=T)
+
+							pval<-data.frame(gene="g1",FDR=NA)
+							names(pval)[2]<-paste(labs[idx],".pval",sep="")
+							pval.total<-merge(pval.total,pval,by=1,all=T)
+
+							cf<-data.frame(gene="g1",FDR=NA)
+							names(cf)[2]<-paste(labs[idx],".CF",sep="")
+							cf.total<-merge(cf.total,cf,by=1,all=T)
+
+							rt<-data.frame(gene="g1",ratio=NA)
+							names(rt)[2]<-paste(labs[idx],".ratio",sep="")
+							rt.total<-merge(rt.total,rt,by=1,all=T)
 				}
-			}else{
-						idx<-base+1
-						done[idx:(idx+2)]<-0
-						fdr<-data.frame(gene="g1",FDR=NA,FDR2=NA,FDR3=NA)
-						names(fdr)[2:4]<-paste(labs[idx:(idx+2)],".FDR",sep="")
-						fdr.total<-merge(fdr.total,fdr,by=1,all=T)
-
-						pval<-data.frame(gene="g1",FDR=NA,FDR2=NA,FDR3=NA)
-						names(pval)[2:4]<-paste(labs[idx:(idx+2)],".pval",sep="")
-						pval.total<-merge(pval.total,pval,by=1,all=T)
-
-						cf<-data.frame(gene="g1",FDR=NA,FDR2=NA,FDR3=NA)
-						names(cf)[2:4]<-paste(labs[idx:(idx+2)],".CF",sep="")
-						cf.total<-merge(cf.total,cf,by=1,all=T)
-
-						rt<-data.frame(gene="g1",FDR=NA,FDR2=NA,FDR3=NA)
-						names(rt)[2:4]<-paste(labs[idx:(idx+2)],".ratio",sep="")
-						rt.total<-merge(rt.total,rt,by=1,all=T)
 			}
 		}
 	}
+	
+	#print(fdr.total[1:3,])
+	
 	if (nrow(fdr.total)>1){
 
 
@@ -234,22 +234,27 @@ do.summary<-function(invname){
 	
 			table<-as.data.frame(t(table))
 			names(table)<-names(cf.total)
+			
 			idx.ratio<-grep("[::*::]",as.vector(as.matrix(table[,2:7])),invert=T)
 			temp.vector<-as.vector(as.matrix(rt.total[,2:7]))
 			temp.vector[idx.ratio]<-"-"
+
 			rt.total<-as.data.frame(matrix(temp.vector,nrow=nrow(cf.total)))
 			row.names(rt.total)<-row.names(fdr.total)
 			names(rt.total)<-names(fdr.total)[2:7]
 
+
+			#sc.min<-apply(rt.total,1,min)
+
 			idx.ratio<-grep("[::**::]",as.vector(as.matrix(table[,2:7])),invert=T)
-			temp.vector<-as.vector(as.matrix(cf.total[,2:7]))
+			temp.vector<-as.vector(as.matrix(rt.total))
 			temp.vector[idx.ratio]<-10000
-			temp.vector<-sub("[::**::]","",temp.vector)
+			# #temp.vector<-sub("[::**::]","",temp.vector)
 			temp.vector<-abs(as.numeric(temp.vector))
-			cf.lim<-as.data.frame(matrix(temp.vector,nrow=nrow(cf.total)))
-			cf.min<-apply(cf.lim,1,min)
-			row.names(cf.lim)<-row.names(cf.total)
-			cf.lim$min<-cf.min
+			rt.lim<-as.data.frame(matrix(temp.vector,nrow=nrow(rt.total)))
+			rt.min<-apply(rt.lim,1,min)
+			# row.names(cf.lim)<-row.names(cf.total)
+			# cf.lim$min<-cf.min
 
 			table$POP<-factor("NONE",levels=c("NONE","BOTH","EU","YRI","EU->YRI","YRI->EU"))
 			##tendency
@@ -301,6 +306,7 @@ do.summary<-function(invname){
 				table[list.id,"POP"]<-"YRI"
 			}
 
+			table<-cbind(table,rt.min)
 			table<-table[table$genes!="g1",]		
 			table$inv<-invname
 
@@ -310,7 +316,7 @@ do.summary<-function(invname){
 			table$chr<-as.character(table$chr)
 			table$start<-as.numeric(table$start)
 			table$end<-as.numeric(table$end)
-			table$relative<-apply(table[,10:12],1,function(x){
+			table$relative<-apply(table[,11:13],1,function(x){
 					start<-as.numeric(x[2])
 					end<-as.numeric(x[3])
 					#print(c(x))
@@ -329,9 +335,9 @@ do.summary<-function(invname){
 			table<-cbind(table,gene.sum[row.names(table),])
 			table$eudone<-eudone
 			table$yridone<-yridone
-			table$mincf<-cbind(table,cf.lim$min)
+			#table$mincf<-cbind(table,cf.lim$min)
 			table.res<-rbind(table.res,table)
-			table.res<-cbind(table.res,rt.total[row.names(table.res),])
+			#table.res<-cbind(table.res,rt.total[row.names(table.res),])
 		}
 
 
