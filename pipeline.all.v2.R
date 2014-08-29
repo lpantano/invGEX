@@ -14,6 +14,8 @@ pipeline.deseq<-function(info.a,invname){
 	outfolder<-paste(sep="",pop.selected,".DESeq2",type,".parametric")
 	source("deseq2.v2.R")
 	deseq2(obj_exp,outfolder,invname,pop.selected)
+	source("deseq2.additive.v2.R")
+	deseq2.additive(obj_exp,outfolder,invname,pop.selected)
 
 	#########################
 	#########################
@@ -30,7 +32,10 @@ pipeline.deseq<-function(info.a,invname){
 	obj_exp<-get.table.filter(obj_exp.raw)
 
 	outfolder<-paste(sep="",pop.selected,".DESeq2",type,".parametric")
+	source("deseq2.v2.R")
 	deseq2(obj_exp,outfolder,invname,pop.selected)
+	source("deseq2.additive.v2.R")
+	deseq2.additive(obj_exp,outfolder,invname,pop.selected)
 
 
 	#########################

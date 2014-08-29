@@ -17,6 +17,8 @@ pipeline.deseq.chrX<-function(info.a,type,invname){
 	source("deseq2.v2.R")
 	deseq2(obj_exp,outfolder,invname,pop.selected)
 
+	source("deseq2.additive.v2.R")
+	deseq2.additive(obj_exp,outfolder,invname,pop.selected)
 	#########################
 	#########################
 	#CEUTSI
@@ -31,7 +33,10 @@ pipeline.deseq.chrX<-function(info.a,type,invname){
 	obj_exp<-get.table.filter(obj_exp.raw,sex=T)
 
 	outfolder<-paste(sep="",pop.selected,".DESeq2",type,".inv.parametric")
+	source("deseq2.v2.R")
 	deseq2(obj_exp,outfolder,invname,pop.selected)
 
+	source("deseq2.additive.v2.R")
+	deseq2.additive(obj_exp,outfolder,invname,pop.selected)
 	#########################
 }

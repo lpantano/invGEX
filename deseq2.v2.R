@@ -44,11 +44,9 @@ deseq2<-function(obj_exp,outfolder,invname,pop){
 	if (length(levels(design2$condition))>1){
 		pairs<-combn(levels(design2$condition),2)
 		if (go.w.deseq==1){
-
 			#path<-paste(sep="",rootpath,pop,"/",outfolder,"/")
 			path<-paste(sep="",path_res,invname,"/",type,"/",outfolder)
-			dir.create(paste(sep="",path),showWarnings = FALSE)
-			
+			dir.create(paste(sep="",path),showWarnings = FALSE)			
 			#dir.create(paste(sep="",path),showWarnings = FALSE)
 			print(path)
 			print(nrow(design))
@@ -64,11 +62,8 @@ deseq2<-function(obj_exp,outfolder,invname,pop){
 					dse <- DESeqDataSetFromMatrix(countData = table.f, colData = design.f,design = ~ sex + condition)
 				}else{
 					dse <- DESeqDataSetFromMatrix(countData = table.f, colData = design.f,design = ~ condition)
-				}
-				
-
+				}		
 				#write.table(as.data.frame(table(design2)),paste(sep="",path,"/design.tab"),quote=F,sep="\t")
-			
 				dse <- DESeq(dse,fitType="parametric",quiet=TRUE)
 				save(dse,file=paste0(path,"/",pairs[1,nc],pairs[2,nc],"dse"))
 				rld <- rlogTransformation(dse)
@@ -82,20 +77,14 @@ deseq2<-function(obj_exp,outfolder,invname,pop){
 					res <- results(dse,independentFiltering=FALSE,cooksCutoff=FALSE)
 					pi0<-save.results(res,path,paste0(pairs[1,nc],pairs[2,nc]),pi0)
 				})	
-				
-
-				
-				
+			
 			}
-
 			#pvalues[nameres]<-1
 			#print("Doing 50 permutations")
 			#if (pi0<1){
 			#	pvalues<-send.random(obj_exp,path,pi0)
 			#}
 			#write.table(pvalues,paste(sep="",path,"/pvalues.tab"),quote=F,sep="\t")
-
-
 		}
 	}
 }

@@ -1,10 +1,10 @@
 type<-"Genes"
-pathYRI<-"/home/shareddata/Bioinformatics/iRNASeq/geovadis/YRI/"
-pathCEU<-paste(sep="","/home/shareddata/Bioinformatics/iRNASeq/geovadis/CEU/genes/counts.",type,".tab")
-pathTSI<-paste(sep="","/home/shareddata/Bioinformatics/iRNASeq/geovadis/TSI/genes/counts.",type,".tab")
+pathYRI<-"/home/lpantano/projects/ibb/inputs/YRI"
+pathCEU<-paste(sep="","/home/lpantano/projects/ibb/inputs/CEU/counts.",type,".tab")
+pathTSI<-paste(sep="","/home/lpantano/projects/ibb/inputs/TSI/counts.",type,".tab")
 #rootpath<-"/home/shareddata/Bioinformatics/iRNASeq/test/"
-MLPA<-"/home/shareddata/Bioinformatics/iRNASeq/genotype/v2_RESULTS_41INVERSIONS_7POPULATIONS_v2_04_02_2014.tab"
-#MLPA<-"/home/shareddata/Bioinformatics/iRNASeq/iMLPA_genotypes_Oct22.csv"
+#MLPA<-"/home/lpantano/projects/ibb/inputs/v2_RESULTS_41INVERSIONS_7POPULATIONS_v2_04_02_2014.tab"
+MLPA<-"/home/lpantano/projects/ibb/inputs/HsInv06.txt"
 parameter.pipeline<-"repeat"
-path_res<-"/home/shareddata/Bioinformatics/iRNASeq/results_paralell_April/"
-file.pos<-"/home/shareddata/Bioinformatics/iRNASeq/positions.all"
+path_res<-"/home/lpantano/projects/ibb/inputs/res/"
+file.pos<-"/home/lpantano/projects/ibb/inputs/positions.all"

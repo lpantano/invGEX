@@ -2,7 +2,7 @@
 
 prepare.YRI.geovadis<-function(info.a,obj_exp){
 	source("parameters.R")
-	table<-read.table(paste(sep="",pathYRI,"genes/counts.",type,".tab"),header=T,sep="\t",row.names=1)
+	table<-read.table(paste(sep="",pathYRI,"/counts.",type,".tab"),header=T,sep="\t",row.names=1)
 	#table<-table[,1:35]
 	#table<-table[1:(nrow(table)-5),]
 	#info<-read.table("/home/shareddata/Bioinformatics/iRNASeq/geovadis/YRI/HsInv102_YRI.v2.csv",sep="\t",header=T)
