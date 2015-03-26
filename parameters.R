@@ -4,7 +4,8 @@ pathCEU<-paste(sep="","/home/lpantano/projects/ibb/inputs/CEU/counts.",type,".ta
 pathTSI<-paste(sep="","/home/lpantano/projects/ibb/inputs/TSI/counts.",type,".tab")
 #rootpath<-"/home/shareddata/Bioinformatics/iRNASeq/test/"
 #MLPA<-"/home/lpantano/projects/ibb/inputs/v2_RESULTS_41INVERSIONS_7POPULATIONS_v2_04_02_2014.tab"
-MLPA<-"/home/lpantano/projects/ibb/inputs/HsInv06.txt"
+MLPA<-"/home/lpantano/projects/ibb/inputs/HsInv45.txt"
+#MLPA<-"/home/lpantano/projects/ibb/inputs/HsInv06.txt"
 parameter.pipeline<-"repeat"
 path_res<-"/home/lpantano/projects/ibb/inputs/res/"
 file.pos<-"/home/lpantano/projects/ibb/inputs/positions.all"
