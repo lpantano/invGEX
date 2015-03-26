@@ -47,8 +47,10 @@ do.analysis<-function(invname){
 			source("pipeline.all.v2.R")
 			pipeline.deseq(info.a,invname)
 		}
-		source("summary.all.R")
+		source("summary.pairs.R")
 		do.summary(invname)
+		source("summary.add.R")
+		do.summary.add(invname)
 		write.table("done",paste(sep="",path_res,invname,"/",type,"/done"))
 		
 	}
