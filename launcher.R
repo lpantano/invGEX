@@ -4,7 +4,7 @@ dode<-function(x){
 	source("general.pipeline.function.R")
 	do.analysis(x)
 }
-load(all.inversions.obj)
+load("all.inversions.obj")
 
 library(parallel)
 cl<-makeCluster(4) 
